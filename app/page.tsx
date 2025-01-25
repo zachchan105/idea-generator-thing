@@ -21,6 +21,8 @@ async function getIdeas() {
   }
 }
 
+export const revalidate = 0 // Disable caching
+
 export default async function Home() {
   const ideas = await getIdeas()
 
