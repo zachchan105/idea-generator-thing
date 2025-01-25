@@ -47,8 +47,8 @@ export default async function Home() {
           <div className="space-y-3 text-base md:text-lg text-gray-600">
             <p>
               I&apos;m Zach Price - a software enthusiast and maker who loves using code to prototype 
-              innovative ideas. I&apos;ve had the chance to work on exciting crypto projects like 
-              Meowcoin and Telestai, focusing on building simple, effective, and informative 
+              a wide range of ideas. I&apos;ve had the chance to work on exciting crypto projects like 
+              Meowcoin, Telestai, AIPG, and Helium. I focus on building simple, effective, and informative 
               products.
             </p>
             <p>
