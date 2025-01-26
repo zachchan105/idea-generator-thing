@@ -1,7 +1,9 @@
 import { redis } from '@/lib/redis'
 import IdeaCard from '@/components/IdeaCard'
+import { BookOpen, Heart } from 'lucide-react'
+import Link from 'next/link'
 
-async function getIdeas() {
+async function getIdeas(tag?: string) {
   try {
     const ideaKeys = await redis.keys('idea:*')
     const ideas = await Promise.all(
@@ -12,9 +14,16 @@ async function getIdeas() {
     )
     
     // Sort by timestamp (newest first)
-    return ideas.sort((a, b) => 
+    ideas.sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
+
+    // Filter by tag if provided
+    if (tag) {
+      return ideas.filter(idea => idea.tags.includes(tag))
+    }
+
+    return ideas
   } catch (error) {
     console.error('Error fetching ideas:', error)
     return []
@@ -23,8 +32,17 @@ async function getIdeas() {
 
 export const revalidate = 0 // Disable caching
 
-export default async function Home() {
-  const ideas = await getIdeas()
+export default async function Home({
+  searchParams
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const params = await searchParams
+  const tag = Array.isArray(params.tag) 
+    ? params.tag[0] 
+    : params.tag
+  const ideas = await getIdeas(tag)
+  const allTags = Array.from(new Set(ideas.flatMap(idea => idea.tags)))
 
   return (
     <main className="container mx-auto px-4 py-4">
@@ -38,6 +56,11 @@ export default async function Home() {
             A collection of tech ideas for builders and tinkerers. These are concepts 
             I think could be fun to prototype and might actually work in the real world. 
             Some are AI-powered, others are just clever hacks - all are meant to inspire.
+          </p>
+          <p className="text-lg md:text-xl lg:text-2xl text-gray-600 leading-relaxed">
+            This site uses AI to generate unique startup ideas, which you can explore, 
+            upvote, and share. New ideas are added regularly, so check back often for 
+            fresh inspiration!
           </p>
         </div>
 
@@ -57,9 +80,64 @@ export default async function Home() {
               who inspire me to keep creating.
             </p>
           </div>
+
+          {/* Links Section */}
+          <div className="mt-4 pt-1">
+            <div className="flex flex-row space-x-4">
+              <a
+                href="https://zachprice.info"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <BookOpen className="h-5 w-5" />
+                <span>Read my blog</span>
+              </a>
+              <a
+                href="https://patreon.com/ZachPrice"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-orange-600 hover:text-orange-800 transition-colors"
+              >
+                <Heart className="h-5 w-5" />
+                <span>Support me on Patreon</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Tag Filters */}
+      <div className="my-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold">Filter by Tags</h3>
+          {tag && (
+            <Link
+              href="/"
+              className="text-sm text-gray-600 hover:text-gray-900 underline"
+            >
+              Clear Filters
+            </Link>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {allTags.map(tagItem => (
+            <Link
+              key={tagItem}
+              href={`/?tag=${encodeURIComponent(tagItem)}`}
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                tag === tagItem
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              } transition-colors`}
+            >
+              {tagItem}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Ideas Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {ideas.map((idea) => (
           <IdeaCard key={idea.createdAt} idea={idea} />
