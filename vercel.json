@@ -4,7 +4,7 @@
       "path": "/api/generate-idea",
       "schedule": "0 12 * * *",
       "headers": {
-        "Authorization": "Bearer ${process.env.MANUAL_GENERATION_SECRET}"
+        "Authorization": "Bearer ${process.env.CRON_SECRET}"
       }
     }
   ]
