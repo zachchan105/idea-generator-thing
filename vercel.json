@@ -2,10 +2,7 @@
   "crons": [
     {
       "path": "/api/generate-idea",
-      "schedule": "0 12 * * *",
-      "headers": {
-        "Authorization": "Bearer ${process.env.CRON_SECRET}"
-      }
+      "schedule": "0 12 * * *"
     }
   ]
 } 
