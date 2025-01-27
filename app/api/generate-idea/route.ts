@@ -9,7 +9,6 @@ const deepseek = new OpenAI({
 
 function parseDeepseekResponse(content: string) {
   try {
-    // Remove Markdown code block formatting if present
     const cleanedContent = content.replace(/```json/g, '').replace(/```/g, '').trim()
     return JSON.parse(cleanedContent)
   } catch (error) {
@@ -20,17 +19,15 @@ function parseDeepseekResponse(content: string) {
 
 export async function POST(request: Request) {
   try {
-    // Read body once and store in variable
-    const body = await request.json()
-    const { prompt, secret } = body
-    
-    // Validate secret
-    if (secret !== process.env.CRON_SECRET) {
-      return NextResponse.json({ 
-        success: false,
-        error: 'Invalid secret'
-      }, { status: 401 })
+    // Validate Authorization header
+    const authHeader = request.headers.get('authorization')
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return new Response('Unauthorized', { status: 401 })
     }
+
+    // Read body
+    const body = await request.json()
+    const { prompt } = body
 
     // Get existing ideas to prevent duplicates
     const ideaKeys = await redis.keys('idea:*')
@@ -88,4 +85,4 @@ export async function POST(request: Request) {
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
-} 
+}
